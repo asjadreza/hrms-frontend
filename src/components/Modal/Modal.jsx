@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { FaTimes } from 'react-icons/fa'
+import { IoIosClose } from "react-icons/io";
 import './Modal.css'
 
 const Modal = ({ isOpen, onClose, title, children }) => {
@@ -22,7 +22,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
         <div className="modal-header">
           <h2 className="modal-title">{title}</h2>
           <button className="modal-close" onClick={onClose}>
-            <FaTimes />
+            <IoIosClose />
           </button>
         </div>
         <div className="modal-body">{children}</div>

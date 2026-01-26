@@ -1,123 +1,135 @@
-import { useState, useEffect } from 'react'
-import { FaUserPlus, FaTrash, FaTimes } from 'react-icons/fa'
-import Card from '../../components/Card'
-import Button from '../../components/Button'
-import Modal from '../../components/Modal'
-import FormField from '../../components/FormField'
-import Loading from '../../components/Loading'
-import ErrorMessage from '../../components/ErrorMessage'
-import EmptyState from '../../components/EmptyState'
-import { employeeService } from '../../services/employee.service'
-import './Employees.css'
+import { useState, useEffect } from "react";
+import { FaUserPlus, FaTrash, FaTimes } from "react-icons/fa";
+import Card from "../../components/Card";
+import Button from "../../components/Button";
+import Modal from "../../components/Modal";
+import FormField from "../../components/FormField";
+import Loading from "../../components/Loading";
+import ErrorMessage from "../../components/ErrorMessage";
+import EmptyState from "../../components/EmptyState";
+import { employeeService } from "../../services/employee.service";
+import { toastSuccess, toastError } from "../../utils/toast";
+import "./Employees.css";
 
 const Employees = () => {
-  const [employees, setEmployees] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [formData, setFormData] = useState({
-    employeeId: '',
-    fullName: '',
-    email: '',
-    department: '',
-  })
-  const [formErrors, setFormErrors] = useState({})
-  const [submitting, setSubmitting] = useState(false)
+    employeeId: "",
+    fullName: "",
+    email: "",
+    department: "",
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    fetchEmployees()
-  }, [])
+    fetchEmployees();
+  }, []);
 
   const fetchEmployees = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      const response = await employeeService.getAll()
-      setEmployees(response.data)
+      setLoading(true);
+      setError(null);
+      const response = await employeeService.getAll();
+      setEmployees(response.data);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to load employees')
+      setError(err.response?.data?.error || "Failed to load employees");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (formErrors[name]) {
-      setFormErrors((prev) => ({ ...prev, [name]: '' }))
+      setFormErrors((prev) => ({ ...prev, [name]: "" }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const errors = {}
-    if (!formData.employeeId.trim()) errors.employeeId = 'Employee ID is required'
-    if (!formData.fullName.trim()) errors.fullName = 'Full Name is required'
+    const errors = {};
+    if (!formData.employeeId.trim())
+      errors.employeeId = "Employee ID is required";
+    if (!formData.fullName.trim()) errors.fullName = "Full Name is required";
     if (!formData.email.trim()) {
-      errors.email = 'Email is required'
+      errors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Invalid email format'
+      errors.email = "Invalid email format";
     }
-    if (!formData.department.trim()) errors.department = 'Department is required'
+    if (!formData.department.trim())
+      errors.department = "Department is required";
 
-    setFormErrors(errors)
-    return Object.keys(errors).length === 0
-  }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!validateForm()) return
+    e.preventDefault();
+    if (!validateForm()) return;
 
     try {
-      setSubmitting(true)
-      await employeeService.create(formData)
-      setIsModalOpen(false)
-      setFormData({ employeeId: '', fullName: '', email: '', department: '' })
-      setFormErrors({})
-      fetchEmployees()
+      setSubmitting(true);
+      await employeeService.create(formData);
+      toastSuccess("Employee added successfully.");
+      setIsModalOpen(false);
+      setFormData({ employeeId: "", fullName: "", email: "", department: "" });
+      setFormErrors({});
+      fetchEmployees();
     } catch (err) {
-      const errorMsg = err.response?.data?.error || 'Failed to create employee'
+      const errorMsg = err.response?.data?.error || "Failed to create employee";
+      toastError(errorMsg);
       if (err.response?.data?.errors) {
-        const validationErrors = {}
+        const validationErrors = {};
         err.response.data.errors.forEach((error) => {
-          validationErrors[error.path] = error.msg
-        })
-        setFormErrors(validationErrors)
+          validationErrors[error.path] = error.msg;
+        });
+        setFormErrors(validationErrors);
       } else {
-        setError(errorMsg)
+        setError(errorMsg);
       }
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
     try {
-      await employeeService.delete(id)
-      setDeleteConfirm(null)
-      fetchEmployees()
+      setDeleting(true);
+      await employeeService.delete(id);
+      toastSuccess("Employee deleted successfully.");
+      setDeleteConfirm(null);
+      fetchEmployees();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to delete employee')
-      setDeleteConfirm(null)
+      const errorMsg = err.response?.data?.error || "Failed to delete employee";
+      toastError(errorMsg);
+      setError(err.response?.data?.error || "Failed to delete employee");
+      setDeleteConfirm(null);
+    } finally {
+      setDeleting(false);
     }
-  }
+  };
 
   const openModal = () => {
-    setIsModalOpen(true)
-    setFormData({ employeeId: '', fullName: '', email: '', department: '' })
-    setFormErrors({})
-  }
+    setIsModalOpen(true);
+    setFormData({ employeeId: "", fullName: "", email: "", department: "" });
+    setFormErrors({});
+  };
 
   const closeModal = () => {
-    setIsModalOpen(false)
-    setFormData({ employeeId: '', fullName: '', email: '', department: '' })
-    setFormErrors({})
-  }
+    setIsModalOpen(false);
+    setFormData({ employeeId: "", fullName: "", email: "", department: "" });
+    setFormErrors({});
+  };
 
-  if (loading) return <Loading message="Loading employees..." />
+  if (loading) return <Loading message="Loading employees..." />;
   if (error && employees.length === 0)
-    return <ErrorMessage message={error} onRetry={fetchEmployees} />
+    return <ErrorMessage message={error} onRetry={fetchEmployees} />;
 
   return (
     <div className="employees-page">
@@ -127,7 +139,7 @@ const Employees = () => {
           <p className="page-subtitle">Manage employee records</p>
         </div>
         <Button onClick={openModal}>
-          <FaUserPlus style={{ marginRight: '0.5rem' }} />
+          <FaUserPlus style={{ marginRight: "0.5rem" }} />
           Add Employee
         </Button>
       </div>
@@ -147,7 +159,7 @@ const Employees = () => {
             message="No employees found. Add your first employee to get started."
             action={
               <Button onClick={openModal}>
-                <FaUserPlus style={{ marginRight: '0.5rem' }} />
+                <FaUserPlus style={{ marginRight: "0.5rem" }} />
                 Add Employee
               </Button>
             }
@@ -176,8 +188,8 @@ const Employees = () => {
                         variant="danger"
                         onClick={() => setDeleteConfirm(employee)}
                       >
-                        <FaTrash style={{ marginRight: '0.5rem' }} />
-                        Delete
+                        <FaTrash />
+                        Remove
                       </Button>
                     </td>
                   </tr>
@@ -188,11 +200,7 @@ const Employees = () => {
         )}
       </Card>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        title="Add New Employee"
-      >
+      <Modal isOpen={isModalOpen} onClose={closeModal} title="Add New Employee">
         <form onSubmit={handleSubmit}>
           <FormField
             label="Employee ID"
@@ -236,7 +244,7 @@ const Employees = () => {
               Cancel
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? 'Adding...' : 'Add Employee'}
+              {submitting ? "Adding..." : "Add Employee"}
             </Button>
           </div>
         </form>
@@ -244,11 +252,12 @@ const Employees = () => {
 
       <Modal
         isOpen={!!deleteConfirm}
-        onClose={() => setDeleteConfirm(null)}
+        // onClose={() => setDeleteConfirm(null)}
+        onClose={() => !deleting && setDeleteConfirm(null)}
         title="Confirm Delete"
       >
         <p>
-          Are you sure you want to delete{' '}
+          Are you sure you want to delete{" "}
           <strong>{deleteConfirm?.fullName}</strong>? This action cannot be
           undone.
         </p>
@@ -265,13 +274,21 @@ const Employees = () => {
             variant="danger"
             onClick={() => handleDelete(deleteConfirm.id)}
           >
-            <FaTrash style={{ marginRight: '0.5rem' }} />
-            Delete
+            {/* <FaTrash />
+            Delete */}
+            {deleting ? (
+              "Deleting..."
+            ) : (
+              <>
+                <FaTrash />
+                Delete
+              </>
+            )}
           </Button>
         </div>
       </Modal>
     </div>
-  )
-}
+  );
+};
 
-export default Employees
+export default Employees;

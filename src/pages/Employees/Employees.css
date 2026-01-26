@@ -92,6 +92,7 @@
 
 .data-table td {
   padding: 0.875rem;
+  text-align: left;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-primary);
 }

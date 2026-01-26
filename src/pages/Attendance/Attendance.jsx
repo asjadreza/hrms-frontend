@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FaCalendarCheck, FaTimes, FaFilter } from 'react-icons/fa'
+import { FaCalendarCheck, FaFilter } from 'react-icons/fa'
 import Card from '../../components/Card'
 import Button from '../../components/Button'
 import Modal from '../../components/Modal'
@@ -9,6 +9,7 @@ import ErrorMessage from '../../components/ErrorMessage'
 import EmptyState from '../../components/EmptyState'
 import { attendanceService } from '../../services/attendance.service'
 import { employeeService } from '../../services/employee.service'
+import { toastSuccess, toastError } from '../../utils/toast'
 import './Attendance.css'
 
 const Attendance = () => {
@@ -106,6 +107,7 @@ const Attendance = () => {
         date: new Date(formData.date).toISOString(),
       }
       await attendanceService.mark(payload)
+      toastSuccess('Attendance marked successfully.')
       setIsModalOpen(false)
       setFormData({
         employeeId: '',
@@ -116,6 +118,7 @@ const Attendance = () => {
       fetchAttendances()
     } catch (err) {
       const errorMsg = err.response?.data?.error || 'Failed to mark attendance'
+      toastError(errorMsg)
       if (err.response?.data?.errors) {
         const validationErrors = {}
         err.response.data.errors.forEach((error) => {
