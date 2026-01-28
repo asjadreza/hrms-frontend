@@ -208,7 +208,6 @@ const Employees = () => {
             value={formData.employeeId}
             onChange={handleInputChange}
             error={formErrors.employeeId}
-            required
             placeholder="e.g., EMP001"
           />
           <FormField
@@ -217,7 +216,6 @@ const Employees = () => {
             value={formData.fullName}
             onChange={handleInputChange}
             error={formErrors.fullName}
-            required
             placeholder="John Doe"
           />
           <FormField
@@ -227,7 +225,6 @@ const Employees = () => {
             value={formData.email}
             onChange={handleInputChange}
             error={formErrors.email}
-            required
             placeholder="john.doe@example.com"
           />
           <FormField
@@ -236,7 +233,6 @@ const Employees = () => {
             value={formData.department}
             onChange={handleInputChange}
             error={formErrors.department}
-            required
             placeholder="Engineering"
           />
           <div className="form-actions">
